@@ -71,6 +71,100 @@ function createConversation() {
     setCurrentConversationId(conversation.id);
   }
 
+  async function handleSend() {
+  if (!input.trim() || isLoading) return;
+
+  const question = input;
+
+  setInput("");
+  setIsLoading(true);
+
+  const userMessage = {
+    id: crypto.randomUUID(),
+    role: "user",
+    content: question,
+  };
+
+  const assistantId = crypto.randomUUID();
+
+  const assistantMessage = {
+    id: assistantId,
+    role: "assistant",
+    content: "",
+  };
+
+  updateMessages((messages) => [
+    ...messages,
+    userMessage,
+    assistantMessage,
+  ]);
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: question,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch AI response.");
+    }
+
+    const reader = response.body?.getReader();
+
+    if (!reader) {
+      throw new Error("No response stream.");
+    }
+
+    const decoder = new TextDecoder();
+
+    let done = false;
+
+    while (!done) {
+      const { value, done: doneReading } =
+        await reader.read();
+
+      done = doneReading;
+
+      if (!value) continue;
+
+      const chunk = decoder.decode(value, {
+        stream: !doneReading,
+      });
+
+      updateMessages((messages) =>
+        messages.map((message) =>
+          message.id === assistantId
+            ? {
+                ...message,
+                content: message.content + chunk,
+              }
+            : message
+        )
+      );
+    }
+  } catch (error) {
+    console.error(error);
+
+    updateMessages((messages) =>
+      messages.map((message) =>
+        message.id === assistantId
+          ? {
+              ...message,
+              content: "Something went wrong.",
+            }
+          : message
+      )
+    );
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 /*   async function handleSend() {
     if (!input.trim() || isLoading) return;
 
