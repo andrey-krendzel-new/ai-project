@@ -1,6 +1,7 @@
 import { streamText } from "ai";
 import { model } from "../../../../lib/ai";
 import { SYSTEM_PROMPT } from "../../../../lib/systemPrompt";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {

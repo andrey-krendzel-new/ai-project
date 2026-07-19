@@ -8,6 +8,10 @@ However, the code just got messier and messier. Chatgpt said just burn it all an
 
 I gritted my teeth and after a while it's working again at a basic level. Thank you for your patience. 
 
+Here's a demo. For some reason the prompt, sent as POST request, return an empty body. Will look into it tomorrow.
+
+https://ai-project-3psmk75pj-ai-research-bot.vercel.app/
+
 
 ## Getting Started
 
