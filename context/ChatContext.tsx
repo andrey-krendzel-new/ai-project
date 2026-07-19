@@ -34,7 +34,7 @@ type ChatContextType = {
     React.SetStateAction<boolean>
   >;
 
-  createConversation: () => void;
+  createConversation: () => string;
 
   setCurrentConversationId: (
     id: string
@@ -112,27 +112,25 @@ export function ChatProvider({
   );
 }
 
-   function createConversation() {
-    const conversation: Conversation =
-      {
-        id: crypto.randomUUID(),
+   function createConversation(): string {
+  const id = crypto.randomUUID();
 
-        title: "New Chat",
+  const conversation: Conversation = {
+    id,
+    title: "New Chat",
+    createdAt: Date.now(),
+    messages: [],
+  };
 
-        createdAt: Date.now(),
+  setConversations((prev) => [
+    conversation,
+    ...prev,
+  ]);
 
-        messages: [],
-      };
+  setCurrentConversationId(id);
 
-    setConversations(prev => [
-      conversation,
-      ...prev,
-    ]);
-
-    setCurrentConversationId(
-      conversation.id
-    );
-  }
+  return id;
+}
 
     return (
     <ChatContext.Provider

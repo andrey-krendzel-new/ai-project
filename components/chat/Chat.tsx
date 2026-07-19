@@ -34,28 +34,23 @@ const currentConversation =
     );
 
 function updateMessages(
-    updater: (messages: Message[]) => Message[]
+  conversationId: string,
+  updater: (messages: Message[]) => Message[]
 ) {
-    setConversations(prev =>
-        prev.map(conversation => {
-            if (
-                conversation.id !==
-                currentConversationId
-            )
-                return conversation;
-
-            return {
-                ...conversation,
-                messages: updater(
-                    conversation.messages
-                ),
-            };
-        })
-    );
+  setConversations((prev) =>
+    prev.map((conversation) =>
+      conversation.id === conversationId
+        ? {
+            ...conversation,
+            messages: updater(conversation.messages),
+          }
+        : conversation
+    )
+  );
 }
 
 
-function createConversation() {
+function createConversation(): string {
     const conversation: Conversation = {
       id: crypto.randomUUID(),
       title: "New Chat",
@@ -69,6 +64,8 @@ function createConversation() {
     ]);
 
     setCurrentConversationId(conversation.id);
+
+    return conversation.id;
   }
 
   async function handleSend() {
@@ -78,6 +75,12 @@ function createConversation() {
 
   setInput("");
   setIsLoading(true);
+
+  let conversationId = currentConversationId;
+
+if (!conversationId) {
+  conversationId = createConversation();
+}
 
   const userMessage = {
     id: crypto.randomUUID(),
@@ -93,11 +96,7 @@ function createConversation() {
     content: "",
   };
 
-  updateMessages((messages) => [
-    ...messages,
-    userMessage,
-    assistantMessage,
-  ]);
+
 
   try {
     const response = await fetch("/api/chat", {
