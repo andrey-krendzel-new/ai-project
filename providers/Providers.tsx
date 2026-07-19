@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import { ChatProvider } from "../context/ChatContext";
 
@@ -12,4 +12,4 @@ export default function Providers({
       {children}
     </ChatProvider>
   );
-}
+} */
