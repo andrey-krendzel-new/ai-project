@@ -1,19 +1,29 @@
 import { streamText } from "ai";
-import { google } from "../../../../lib/ai";
-import { researchPrompt } from "../../../../components/prompts/research";
+import { model } from "../../../../lib/ai";
+import { SYSTEM_PROMPT } from "../../../../lib/systemPrompt";
 
-export async function POST(request: Request) {
-  const body = await request.json();
+export async function POST(req: Request) {
+  try {
+    const { message } = await req.json();
 
-  const result = streamText({
-    model: google("gemini-3-flash-preview"),
-    prompt: `
-${researchPrompt}
+const result = streamText({
+  model,
+  system: SYSTEM_PROMPT,
+  prompt: message,
+});
 
-Question:
-${body.message}
-`,
-  });
+return result.toTextStreamResponse();
 
-  return result.toTextStreamResponse();
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        error: "Something went wrong.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

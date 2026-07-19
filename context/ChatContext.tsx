@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import {
   createContext,
@@ -175,4 +175,4 @@ export function useChatContext() {
   }
 
   return context;
-}
+} */

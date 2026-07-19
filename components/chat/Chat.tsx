@@ -1,88 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 import MessageList from "./MessageList";
 
-import { Message, Conversation } from "../../types/chat";
-import { useChat } from "@ai-sdk/react";
-import { useChatContext } from "../../context/ChatContext";
-
+import { Message } from "../../types/chat";
 
 export default function Chat() {
+  const [messages, setMessages] =
+    useState<Message[]>([]);
 
-  const {
-  messages,
-  input,
-  setInput,
-  isLoading,
-  setIsLoading,
-} = useChatContext();
+  const [input, setInput] =
+    useState("");
 
-  const [conversations, setConversations] =
-    useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-  const [currentConversationId, setCurrentConversationId] =
-    useState<string | null>(null);
-
-const currentConversation =
-    conversations.find(
-        conversation =>
-            conversation.id === currentConversationId
-    );
-
-function updateMessages(
-  conversationId: string,
-  updater: (messages: Message[]) => Message[]
-) {
-  setConversations((prev) =>
-    prev.map((conversation) =>
-      conversation.id === conversationId
-        ? {
-            ...conversation,
-            messages: updater(conversation.messages),
-          }
-        : conversation
-    )
-  );
-}
-
-
-function createConversation(): string {
-    const conversation: Conversation = {
-      id: crypto.randomUUID(),
-      title: "New Chat",
-      createdAt: Date.now(),
-      messages: [],
-    };
-
-    setConversations((prev) => [
-      conversation,
-      ...prev,
-    ]);
-
-    setCurrentConversationId(conversation.id);
-
-    return conversation.id;
-  }
+  const bottomRef =
+    useRef<HTMLDivElement>(null);
 
   async function handleSend() {
-  if (!input.trim() || isLoading) return;
+  const question = input.trim();
 
-  const question = input;
+  if (!question || isLoading) return;
 
   setInput("");
+
   setIsLoading(true);
 
-  let conversationId = currentConversationId;
-
-if (!conversationId) {
-  conversationId = createConversation();
-}
-
-  const userMessage = {
+  const userMessage: Message = {
     id: crypto.randomUUID(),
     role: "user",
     content: question,
@@ -90,13 +38,17 @@ if (!conversationId) {
 
   const assistantId = crypto.randomUUID();
 
-  const assistantMessage = {
+  const assistantMessage: Message = {
     id: assistantId,
     role: "assistant",
     content: "",
   };
 
-
+  setMessages((prev) => [
+    ...prev,
+    userMessage,
+    assistantMessage,
+  ]);
 
   try {
     const response = await fetch("/api/chat", {
@@ -110,37 +62,34 @@ if (!conversationId) {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch AI response.");
+      throw new Error("Request failed");
     }
 
-    const reader = response.body?.getReader();
-
-    if (!reader) {
-      throw new Error("No response stream.");
+    if (!response.body) {
+      throw new Error("No response body");
     }
 
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    let done = false;
+    let streamedText = "";
 
-    while (!done) {
-      const { value, done: doneReading } =
+    while (true) {
+      const { value, done } =
         await reader.read();
 
-      done = doneReading;
+      if (done) break;
 
-      if (!value) continue;
-
-      const chunk = decoder.decode(value, {
-        stream: !doneReading,
+      streamedText += decoder.decode(value, {
+        stream: true,
       });
 
-      updateMessages((messages) =>
-        messages.map((message) =>
+      setMessages((prev) =>
+        prev.map((message) =>
           message.id === assistantId
             ? {
                 ...message,
-                content: message.content + chunk,
+                content: streamedText,
               }
             : message
         )
@@ -149,12 +98,13 @@ if (!conversationId) {
   } catch (error) {
     console.error(error);
 
-    updateMessages((messages) =>
-      messages.map((message) =>
+    setMessages((prev) =>
+      prev.map((message) =>
         message.id === assistantId
           ? {
               ...message,
-              content: "Something went wrong.",
+              content:
+                "Something went wrong.",
             }
           : message
       )
@@ -164,97 +114,34 @@ if (!conversationId) {
   }
 }
 
-/*   async function handleSend() {
-    if (!input.trim() || isLoading) return;
-
-    const question = input;
-
-    setInput("");
-    setIsLoading(true);
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: question,
-    };
-
-    const assistantId = crypto.randomUUID();
-
-    const assistantMessage: Message = {
-      id: assistantId,
-      role: "assistant",
-      content: "",
-    };
-
-updateMessages((messages) => [
-  ...messages,
-  userMessage,
-  assistantMessage,
-]);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: question,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch AI response.");
-      }
-
-      const reader = response.body?.getReader();
-
-      if (!reader) {
-        throw new Error("No response stream.");
-      }
-
-      const decoder = new TextDecoder();
-
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-
-        done = doneReading;
-
-        if (!value) continue;
-
-        const chunk = decoder.decode(value, {
-          stream: !doneReading,
-        });
-
-      
-      }
-    } catch (error) {
-      console.error(error);
-
-    
-    } finally {
-      setIsLoading(false);
-    }
-  } */
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   return (
-    <main className="flex flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto p-6">
+    <section className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
-          <MessageList messages={messages} />
+          <>
+            <MessageList
+              messages={messages}
+            />
+
+            <div ref={bottomRef} />
+          </>
         )}
       </div>
 
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        onSend={handleSend}
-        isLoading={isLoading}
-      />
-    </main>
+<ChatInput
+  input={input}
+  onInputChange={setInput}
+  onSend={handleSend}
+  isLoading={isLoading}
+/>
+    </section>
   );
 }

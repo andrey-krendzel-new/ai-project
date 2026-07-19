@@ -1,31 +1,39 @@
-import MarkdownRenderer from "./MarkdownRenderer";
+import { Message as MessageType } from "../../types/chat";
+import Markdown from "./Markdown";
 
 type Props = {
-  role: "user" | "assistant";
-  content: string;
+  message: MessageType;
 };
 
 export default function Message({
-  role,
-  content,
+  message,
 }: Props) {
-  const isUser = role === "user";
+  const isUser =
+    message.role === "user";
 
   return (
-<div
-  className={`
-    max-w-3xl
-    rounded-xl
-    px-4
-    py-3
-    ${isUser ? "bg-blue-600 text-white" : "bg-gray-100"}
-  `}
->
-  {isUser ? (
-    content
-  ) : (
-    <MarkdownRenderer content={content} />
-  )}
-</div>
+    <div
+      className={`flex ${
+        isUser
+          ? "justify-end"
+          : "justify-start"
+      }`}
+    >
+      <div
+        className={`max-w-4xl rounded-2xl px-5 py-4 ${
+          isUser
+            ? "bg-black text-white"
+            : "bg-zinc-100"
+        }`}
+      >
+        {isUser ? (
+          message.content
+        ) : (
+          <Markdown
+            content={message.content}
+          />
+        )}
+      </div>
+    </div>
   );
 }

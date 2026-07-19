@@ -1,33 +1,19 @@
+import { Message as MessageType } from "../../types/chat";
 import Message from "./Message";
-import { Message as MessageType } from "../..//types/chat";
 
-type MessageListProps = {
+type Props = {
   messages: MessageType[];
 };
 
-const messages: MessageType[] = [
-  {
-    id: "1",
-    role: "user",
-    content: "Research React",
-  },
-  {
-    id: "2",
-    role: "assistant",
-    content: "Sure!",
-  },
-];
-
 export default function MessageList({
   messages,
-}: MessageListProps) {
+}: Props) {
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">
       {messages.map((message) => (
         <Message
           key={message.id}
-          role={message.role}
-          content={message.content}
+          message={message}
         />
       ))}
     </div>
