@@ -1,30 +1,29 @@
 import { generateText } from "ai";
 import { model } from "../../../../lib/ai";
-import { SYSTEM_PROMPT } from "../../../../lib/systemPrompt";
 
-export const runtime = "nodejs";
-
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const { message } = await req.json();
-
     const result = await generateText({
       model,
-      system: SYSTEM_PROMPT,
-      prompt: message,
+      prompt: "Say hello",
     });
 
     return Response.json({
-      response: result.text,
+      text: result.text,
     });
   } catch (err) {
     console.error(err);
 
     return Response.json(
       {
-        error: String(err),
+        error:
+          err instanceof Error
+            ? err.message
+            : String(err),
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
