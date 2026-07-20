@@ -1,25 +1,29 @@
+import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { model } from "../../../../lib/ai";
+import { SYSTEM_PROMPT } from "../../../../lib/systemPrompt";
 
-export async function POST() {
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
   try {
+    const { message } = await req.json();
+
     const result = await generateText({
       model,
-      prompt: "Say hello",
+      system: SYSTEM_PROMPT,
+      prompt: message,
     });
 
-    return Response.json({
-      text: result.text,
+    return NextResponse.json({
+      response: result.text,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
 
-    return Response.json(
+    return NextResponse.json(
       {
-        error:
-          err instanceof Error
-            ? err.message
-            : String(err),
+        error: "Something went wrong.",
       },
       {
         status: 500,

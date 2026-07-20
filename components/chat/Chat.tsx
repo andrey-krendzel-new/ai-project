@@ -44,74 +44,51 @@ export default function Chat() {
     content: "",
   };
 
-  setMessages((prev) => [
-    ...prev,
-    userMessage,
-    assistantMessage,
-  ]);
+ try {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: question,
+    }),
+  });
 
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: question,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Request failed");
-    }
-
-    if (!response.body) {
-      throw new Error("No response body");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    let streamedText = "";
-
-    while (true) {
-      const { value, done } =
-        await reader.read();
-
-      if (done) break;
-
-      streamedText += decoder.decode(value, {
-        stream: true,
-      });
-
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === assistantId
-            ? {
-                ...message,
-                content: streamedText,
-              }
-            : message
-        )
-      );
-    }
-  } catch (error) {
-    console.error(error);
-
-    setMessages((prev) =>
-      prev.map((message) =>
-        message.id === assistantId
-          ? {
-              ...message,
-              content:
-                "Something went wrong.",
-            }
-          : message
-      )
-    );
-  } finally {
-    setIsLoading(false);
+  if (!response.ok) {
+    throw new Error("Failed to fetch AI response.");
   }
+
+  const data = await response.json();
+
+  const assistantMessage: Message = {
+    id: assistantId,
+    role: "assistant",
+    content: data.response,
+  };
+
+  setMessages((prev) =>
+    prev.map((message) =>
+      message.id === assistantId
+        ? assistantMessage
+        : message
+    )
+  );
+} catch (error) {
+  console.error(error);
+
+  setMessages((prev) =>
+    prev.map((message) =>
+      message.id === assistantId
+        ? {
+            ...message,
+            content: "Something went wrong.",
+          }
+        : message
+    )
+  );
+} finally {
+  setIsLoading(false);
 }
 
   useEffect(() => {
@@ -144,4 +121,4 @@ export default function Chat() {
 />
     </section>
   );
-}
+}}
