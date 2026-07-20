@@ -1,6 +1,6 @@
 import { generateText } from "ai";
-import { model } from "@/lib/ai";
-import { SYSTEM_PROMPT } from "@/lib/systemPrompt";
+import { model } from "../../../../lib/ai";
+import { SYSTEM_PROMPT } from "../../../../lib/systemPrompt";
 
 export const runtime = "nodejs";
 
