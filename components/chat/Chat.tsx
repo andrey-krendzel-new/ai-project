@@ -89,6 +89,7 @@ export default function Chat() {
   return (
     <section className="flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl px-6 py-8">
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
@@ -98,6 +99,7 @@ export default function Chat() {
           </>
         )}
       </div>
+      </div>s
 
       <ChatInput
         input={input}

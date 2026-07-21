@@ -29,3 +29,46 @@ body {
 .prose img {
   border-radius: 12px;
 }
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+}
+
+h3 {
+    font-size: 1.3rem;
+}
+
+p {
+    line-height: 1.8;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+ul {
+    margin: 1rem 0;
+}
+
+li {
+    margin: .5rem 0;
+}
+
+pre {
+    padding: 1rem;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: .75rem;
+}
