@@ -10,7 +10,7 @@ I gritted my teeth and after a while it's working again at a basic level. Thank 
 
 ## Demo
 
-https://ai-project-3psmk75pj-ai-research-bot.vercel.app/
+https://ai-project-bhh8d4sz6-ai-research-bot.vercel.app/
 
 
 ## Local
