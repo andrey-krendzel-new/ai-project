@@ -22,74 +22,63 @@ export default function Chat() {
     useRef<HTMLDivElement>(null);
 
   async function handleSend() {
-  const question = input.trim();
+    const question = input.trim();
 
-  if (!question || isLoading) return;
+    if (!question || isLoading) return;
 
-  setInput("");
+    setInput("");
+    setIsLoading(true);
 
-  setIsLoading(true);
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: question,
+    };
 
-  const userMessage: Message = {
-    id: crypto.randomUUID(),
-    role: "user",
-    content: question,
-  };
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: question,
+        }),
+      });
 
-  const assistantId = crypto.randomUUID();
+      if (!response.ok) {
+        throw new Error("Failed to fetch AI response.");
+      }
 
-  const assistantMessage: Message = {
-    id: assistantId,
-    role: "assistant",
-    content: "",
-  };
+      const data = await response.json();
 
- try {
-  const response = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      message: question,
-    }),
-  });
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: data.response,
+      };
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch AI response.");
+      setMessages((prev) => [
+        ...prev,
+        userMessage,
+        assistantMessage,
+      ]);
+    } catch (error) {
+      console.error(error);
+
+      setMessages((prev) => [
+        ...prev,
+        userMessage,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "Something went wrong.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   }
-
-  const data = await response.json();
-
-  const assistantMessage: Message = {
-    id: assistantId,
-    role: "assistant",
-    content: data.response,
-  };
-
-  setMessages((prev) =>
-    prev.map((message) =>
-      message.id === assistantId
-        ? assistantMessage
-        : message
-    )
-  );
-} catch (error) {
-  console.error(error);
-
-  setMessages((prev) =>
-    prev.map((message) =>
-      message.id === assistantId
-        ? {
-            ...message,
-            content: "Something went wrong.",
-          }
-        : message
-    )
-  );
-} finally {
-  setIsLoading(false);
-}
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -104,21 +93,18 @@ export default function Chat() {
           <EmptyState />
         ) : (
           <>
-            <MessageList
-              messages={messages}
-            />
-
+            <MessageList messages={messages} />
             <div ref={bottomRef} />
           </>
         )}
       </div>
 
-<ChatInput
-  input={input}
-  onInputChange={setInput}
-  onSend={handleSend}
-  isLoading={isLoading}
-/>
+      <ChatInput
+        input={input}
+        onInputChange={setInput}
+        onSend={handleSend}
+        isLoading={isLoading}
+      />
     </section>
   );
-}}
+}

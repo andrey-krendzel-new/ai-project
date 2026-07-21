@@ -1,4 +1,4 @@
-/* "use client";
+"use client";
 
 import {
   createContext,
@@ -11,7 +11,6 @@ import {
   Conversation,
   Message,
 } from "../types/chat";
-
 
 type ChatContextType = {
   conversations: Conversation[];
@@ -41,10 +40,10 @@ type ChatContextType = {
   ) => void;
 
   updateMessages: (
-  updater: (
-    messages: Message[]
-  ) => Message[]
-) => void;
+    updater: (
+      messages: Message[]
+    ) => Message[]
+  ) => void;
 };
 
 const ChatContext =
@@ -77,7 +76,7 @@ export function ChatProvider({
     useMemo(() => {
       return (
         conversations.find(
-          conversation =>
+          (conversation) =>
             conversation.id ===
             currentConversationId
         ) ?? null
@@ -91,77 +90,71 @@ export function ChatProvider({
     currentConversation?.messages ??
     [];
 
-    function updateMessages(
-  updater: (messages: Message[]) => Message[]
-) {
-  setConversations((prev) =>
-    prev.map((conversation) => {
-      if (
-        conversation.id !== currentConversationId
-      ) {
-        return conversation;
-      }
+  function updateMessages(
+    updater: (
+      messages: Message[]
+    ) => Message[]
+  ) {
+    if (!currentConversationId) return;
 
-      return {
-        ...conversation,
-        messages: updater(
-          conversation.messages
-        ),
-      };
-    })
-  );
-}
+    setConversations((prev) =>
+      prev.map((conversation) => {
+        if (
+          conversation.id !==
+          currentConversationId
+        ) {
+          return conversation;
+        }
 
-   function createConversation(): string {
-  const id = crypto.randomUUID();
+        return {
+          ...conversation,
+          messages: updater(
+            conversation.messages
+          ),
+        };
+      })
+    );
+  }
 
-  const conversation: Conversation = {
-    id,
-    title: "New Chat",
-    createdAt: Date.now(),
-    messages: [],
-  };
+  function createConversation() {
+    const conversation: Conversation = {
+      id: crypto.randomUUID(),
+      title: "New Chat",
+      createdAt: Date.now(),
+      messages: [],
+    };
 
-  setConversations((prev) => [
-    conversation,
-    ...prev,
-  ]);
+    setConversations((prev) => [
+      conversation,
+      ...prev,
+    ]);
 
-  setCurrentConversationId(id);
+    setCurrentConversationId(
+      conversation.id
+    );
 
-  return id;
-}
+    return conversation.id;
+  }
 
-    return (
+  return (
     <ChatContext.Provider
       value={{
         conversations,
-
         currentConversationId,
-
         currentConversation,
-
         messages,
-
         input,
-
         isLoading,
-
         setInput,
-
         setIsLoading,
-
         createConversation,
-
         setCurrentConversationId,
-
         updateMessages,
       }}
     >
       {children}
     </ChatContext.Provider>
   );
-
 }
 
 export function useChatContext() {
@@ -175,4 +168,4 @@ export function useChatContext() {
   }
 
   return context;
-} */
+}
