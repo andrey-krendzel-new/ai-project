@@ -5,12 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 import MessageList from "./MessageList";
+import {
+  loadMessages,
+  saveMessages,
+   clearMessages,
+} from "../../lib/storage";
 
 import { Message } from "../../types/chat";
 
 export default function Chat() {
-  const [messages, setMessages] =
-    useState<Message[]>([]);
+const [messages, setMessages] =
+  useState<Message[]>([]);
 
   const [input, setInput] =
     useState("");
@@ -20,6 +25,9 @@ export default function Chat() {
 
   const bottomRef =
     useRef<HTMLDivElement>(null);
+
+  const [loaded, setLoaded] =
+  useState(false);
 
   async function handleSend() {
     const question = input.trim();
@@ -86,9 +94,33 @@ export default function Chat() {
     });
   }, [messages]);
 
+  useEffect(() => {
+  setMessages(loadMessages());
+  setLoaded(true);
+}, []);
+
+useEffect(() => {
+  if (!loaded) return;
+
+  saveMessages(messages);
+}, [messages, loaded]);
+
+
+
   return (
     <section className="flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
+        <div className="border-b p-4">
+      <button
+        onClick={() => {
+          setMessages([]);
+          clearMessages();
+        }}
+        className="rounded-lg border px-4 py-2 text-sm hover:bg-neutral-100"
+      >
+        Clear Chat
+      </button>
+    </div>
         <div className="mx-auto max-w-4xl px-6 py-8">
         {messages.length === 0 ? (
           <EmptyState />
